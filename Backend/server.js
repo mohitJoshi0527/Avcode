@@ -9,7 +9,7 @@ import MongoStore from "connect-mongo";
 import { connectDB } from "./config/db.js";
 import "./utils/passport.js"; // load Google strategy
 import authRoutes from "./routes/auth.route.js";
-
+import courseRoutes from "./routes/course.route.js";
 // ✅ Load environment variables
 dotenv.config(); // `.env` is now in /Backend
 
@@ -47,7 +47,7 @@ app.use(passport.session());
 
 // ✅ Routes
 app.use("/auth", authRoutes);
-
+app.use("/course", courseRoutes); 
 // ✅ Test route (optional)
 app.get("/", (req, res) => {
   res.send("API is running...");

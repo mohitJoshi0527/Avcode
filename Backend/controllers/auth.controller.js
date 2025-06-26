@@ -6,11 +6,12 @@ export const googleLogin = passport.authenticate('google', {
 });
 export const googleCallback = [
   passport.authenticate('google', {
-    failureRedirect: '/login',
+    failureRedirect: '/auth/google',
+    failureMessage: true,
     session: true,
   }),
   (req, res) => {
-    res.redirect('/success');
+    res.redirect('/auth/success');
   }
 ];
 export const getCurrentUser = (req, res) => {
