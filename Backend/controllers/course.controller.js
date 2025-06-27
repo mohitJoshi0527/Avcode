@@ -2,7 +2,11 @@ import Course from '../models/course.model.js';
 export const createCourse = async (req, res) => {
   try {
     const { title, description, tags } = req.body;
-    const createdBy = req.user.name; 
+    if (!title || !description || !tags) {
+      return res.status(400).json({ message: 'Title, description, and tags are required' });
+    }
+    console.log(req.user);
+    const createdBy = req.user._id; 
     const newCourse = new Course({
       title,
       description,
