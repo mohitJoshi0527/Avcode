@@ -11,7 +11,7 @@ export const googleCallback = [
     session: true,
   }),
   (req, res) => {
-    res.redirect('/auth/success');
+    res.redirect('http://localhost:5173/dashboard'); // Redirect to a protected route after successful login
   }
 ];
 export const getCurrentUser = (req, res) => {

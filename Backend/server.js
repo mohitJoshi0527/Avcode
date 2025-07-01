@@ -10,12 +10,16 @@ import { connectDB } from "./config/db.js";
 import "./utils/passport.js"; // load Google strategy
 import authRoutes from "./routes/auth.route.js";
 import courseRoutes from "./routes/course.route.js";
+import cors from "cors";
 // ✅ Load environment variables
 dotenv.config(); // `.env` is now in /Backend
 
 // ✅ Create express app
 const app = express();
-
+app.use(cors({
+  origin: process.env.CLIENT_URL, // Adjust as needed
+  credentials: true,
+}))
 // ✅ Connect to MongoDB
 connectDB();
 
@@ -48,7 +52,7 @@ app.use(passport.session());
 
 // ✅ Routes
 app.use("/auth", authRoutes);
-app.use("/course", courseRoutes); 
+app.use("/api/course", courseRoutes); 
 // ✅ Test route (optional)
 app.get("/", (req, res) => {
   res.send("API is running...");

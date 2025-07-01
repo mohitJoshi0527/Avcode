@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import InstructorDashboard from '@/components/instructor/instructordashboard'
+
 function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4">
