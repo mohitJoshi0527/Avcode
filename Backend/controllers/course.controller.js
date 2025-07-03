@@ -1,4 +1,5 @@
 import Course from '../models/course.model.js';
+import User from '../models/user.model.js';
 export const createCourse = async (req, res) => {
   try {
     const { title, description, tags } = req.body;
@@ -7,6 +8,10 @@ export const createCourse = async (req, res) => {
     }
     console.log(req.user);
     const createdBy = req.user._id; 
+    const user = await User.findById(createdBy);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
     const newCourse = new Course({
       title,
       description,
@@ -17,8 +22,9 @@ export const createCourse = async (req, res) => {
         attachments: [],
       },
     });
-
     await newCourse.save();
+    user.createdCourses.push(newCourse._id);
+    await user.save();
     res.status(201).json({ message: 'Course created successfully', course: newCourse });
   } catch (err) {
     console.error(err);

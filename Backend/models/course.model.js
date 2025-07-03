@@ -47,6 +47,10 @@
           },
         },
       ],
+      rating: {
+        type: Number,
+        default: 0,
+      },
     }
   });
   const Course = mongoose.model("Course", courseSchema);

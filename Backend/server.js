@@ -10,6 +10,7 @@ import { connectDB } from "./config/db.js";
 import "./utils/passport.js"; // load Google strategy
 import authRoutes from "./routes/auth.route.js";
 import courseRoutes from "./routes/course.route.js";
+import instructorRoutes from "./routes/instructor.route.js"; // Ensure this route is defined in instructor.route.js
 import cors from "cors";
 // ✅ Load environment variables
 dotenv.config(); // `.env` is now in /Backend
@@ -53,6 +54,7 @@ app.use(passport.session());
 // ✅ Routes
 app.use("/auth", authRoutes);
 app.use("/api/course", courseRoutes); 
+app.use("/api/instructor",instructorRoutes); // Ensure this route is defined in instructor.route.js
 // ✅ Test route (optional)
 app.get("/", (req, res) => {
   res.send("API is running...");

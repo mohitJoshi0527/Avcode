@@ -5,11 +5,16 @@ export const ensureAuthenticated = (req, res, next) => {
   return res.status(401).json({ message: "Unauthorized. Please log in." });
 };
 
-export const authorizeRoles = (...roles) => {
+export const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    const userRoles = req.user.roles || [];
+    const isAuthorized = allowedRoles.some(role => userRoles.includes(role));
+
+    if (!isAuthorized) {
       return res.status(403).json({ message: "Forbidden. Access denied." });
     }
+
     next();
   };
 };
+

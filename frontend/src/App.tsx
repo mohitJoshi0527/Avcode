@@ -1,6 +1,8 @@
-import { Routes, Route } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import InstructorDashboard from '@/components/instructor/instructordashboard'
+// src/App.tsx
+import { Routes, Route } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import InstructorDashboard from '@/components/instructor/instructordashboard';
+import CourseDetail from './components/instructor/coursedetails';
 
 function Home() {
   return (
@@ -10,7 +12,7 @@ function Home() {
         <a href="/dashboard">Go to Dashboard</a>
       </Button>
     </div>
-  )
+  );
 }
 
 export default function App() {
@@ -18,6 +20,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/dashboard" element={<InstructorDashboard />} />
+      <Route path="/instructor/courses/:courseId" element={<CourseDetail />} />
     </Routes>
-  )
+  );
 }
