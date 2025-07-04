@@ -27,7 +27,7 @@
           description: {
             type: String,
           },
-          videoUrl: {
+          s3Key: {
             type: String,
             required: true,
           },

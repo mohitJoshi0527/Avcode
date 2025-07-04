@@ -1,11 +1,16 @@
 // src/components/CourseDetail.tsx
-import { useParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import AddVideoDialog from './AddVideoDialog';
-import AddAttachmentDialog from './AddAttachmentDialog';
+import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import AddVideoDialog from "./AddVideoDialog";
+import AddAttachmentDialog from "./AddAttachmentDialog";
 
 export default function CourseDetail() {
   const { courseId } = useParams();
@@ -17,12 +22,26 @@ export default function CourseDetail() {
 
   const fetchCourse = async () => {
     setLoading(true);
-    const res = await axios.get(`/api/instructor/courses/${courseId}`, { withCredentials: true });
+    const res = await axios.get(`/api/instructor/courses/${courseId}`, {
+      withCredentials: true,
+    });
     setCourse(res.data);
     setLoading(false);
   };
-
-  useEffect(() => { fetchCourse(); }, [courseId]);
+  const fetchAndPlay = async (videoId: string) => {
+    try {
+      const res = await axios.get<{ url: string }>(
+        `/api/course/${courseId}/videos/${videoId}/url`,
+        { withCredentials: true }
+      );
+      setPlayUrl(res.data.url);
+    } catch (err) {
+      console.error("Could not fetch video URL", err);
+    }
+  };
+  useEffect(() => {
+    fetchCourse();
+  }, [courseId]);
 
   if (loading) return <p className="p-6">Loading...</p>;
   if (!course) return <p className="p-6 text-red-500">Course not found</p>;
@@ -46,17 +65,32 @@ export default function CourseDetail() {
         <h3 className="text-xl font-semibold">Videos</h3>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {course.content.videos.map((v: any) => (
-            <div key={v._id} className="border rounded-lg p-4 shadow hover:shadow-lg transition">
+            <div
+              key={v._id}
+              className="border rounded-lg p-4 shadow hover:shadow-lg transition"
+            >
               <h4 className="font-medium text-lg">{v.title}</h4>
               <p className="text-sm text-gray-600 mb-2">{v.description}</p>
               <div className="flex space-x-2">
-                <Button variant="outline" size="sm" onClick={() => setPlayUrl(v.signedUrl)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fetchAndPlay(v._id)}
+                >
                   ▶️ Play
                 </Button>
-                <Button variant="destructive" size="sm" onClick={async () => {
-                  await axios.delete(`/api/instructor/courses/${courseId}/videos/${v._id}`, { withCredentials: true });
-                  fetchCourse();
-                }}>
+
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={async () => {
+                    await axios.delete(
+                      `/api/course/${courseId}/videos/${v._id}`,
+                      { withCredentials: true }
+                    );
+                    fetchCourse();
+                  }}
+                >
                   Delete
                 </Button>
               </div>
@@ -77,8 +111,12 @@ export default function CourseDetail() {
               rel="noreferrer"
               className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-gray-50 transition"
             >
-              <span className="text-lg">{att.type === 'pdf' ? '📄' : '💻'}</span>
-              <span className="font-medium">{att.fileURL.split('/').pop()}</span>
+              <span className="text-lg">
+                {att.type === "pdf" ? "📄" : "💻"}
+              </span>
+              <span className="font-medium">
+                {att.fileURL.split("/").pop()}
+              </span>
             </a>
           ))}
         </div>
@@ -91,18 +129,37 @@ export default function CourseDetail() {
             <video
               src={playUrl}
               controls
+              controlsList="nodownload"
+              disableRemotePlayback
               autoPlay
               className="w-full h-full object-contain"
+              onContextMenu={(e) => e.preventDefault()}
             />
           )}
         </DialogContent>
       </Dialog>
 
       {/* Add Video Dialog */}
-      {showAddVideo && <AddVideoDialog courseId={courseId!} onClose={() => { setShowAddVideo(false); fetchCourse(); }} />}
+      {showAddVideo && (
+        <AddVideoDialog
+          courseId={courseId!}
+          onClose={() => {
+            setShowAddVideo(false);
+            fetchCourse();
+          }}
+        />
+      )}
 
       {/* Add Attachment Dialog */}
-      {showAddAttachment && <AddAttachmentDialog courseId={courseId!} onClose={() => { setShowAddAttachment(false); fetchCourse(); }} />}
+      {showAddAttachment && (
+        <AddAttachmentDialog
+          courseId={courseId!}
+          onClose={() => {
+            setShowAddAttachment(false);
+            fetchCourse();
+          }}
+        />
+      )}
     </div>
   );
 }
