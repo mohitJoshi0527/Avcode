@@ -6,6 +6,9 @@ import {  ensureAuthenticated } from '../middleware/auth.js';
 import { authorizeRoles } from '../middleware/auth.js';
 import { deleteCourseVideo } from '../controllers/course.controller.js';
 import { getVideoUrl } from '../controllers/course.controller.js';
+import { uploadAttachment } from '../controllers/course.controller.js';
+import attachUploader from '../middleware/attachUploader.js';
+import { getAttachmentUrl } from '../controllers/course.controller.js';
 const router = express.Router();
 
 router.post(
@@ -25,5 +28,15 @@ router.get(
   '/:courseId/videos/:videoId/url',
   ensureAuthenticated, authorizeRoles("instructor"),
   getVideoUrl
+);
+router.post(
+  '/:courseId/attachments',
+  ensureAuthenticated, authorizeRoles("instructor"),attachUploader.single('file'),
+  uploadAttachment
+);
+router.get(
+  "/course/:courseId/attachments/:fileKey/url",
+ ensureAuthenticated, authorizeRoles("instructor"),
+  getAttachmentUrl
 );
 export default router;

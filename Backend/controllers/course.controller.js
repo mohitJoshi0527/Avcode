@@ -127,3 +127,63 @@ export const getVideoUrl = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+export const uploadAttachment = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const course = await Course.findById(courseId);
+    if (!course) return res.status(404).json({ message: 'Course not found' });
+    if (course.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+    if (!req.file || !req.file.key) {
+      return res.status(400).json({ message: 'Attachment upload failed' });
+    }
+    const { fileType } = req.body; // 'pdf' or 'code'
+    const s3Key = req.file.key;
+
+    const fileData = {
+      type: req.file.mimetype,
+      s3Key,
+    };
+
+    const attachmentData = {
+      pdf: [],
+      codeFiles: [],
+    };
+
+    if (fileType === 'pdf') {
+      attachmentData.pdf.push(fileData);
+    } else if (fileType === 'code') {
+      attachmentData.codeFiles.push(fileData);
+    } else {
+      return res.status(400).json({ message: 'Invalid file type' });
+    }
+
+    course.content.attachments.push(attachmentData);
+    await course.save();
+
+    res.status(200).json({
+      message: 'Attachment uploaded successfully',
+      attachment: attachmentData,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+export const getAttachmentUrl = async (req, res) => {
+  try {
+    const { fileKey } = req.params;
+
+    const command = new GetObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: fileKey,
+    });
+
+    const url = await getSignedUrl(s3, command, { expiresIn: 60 * 60 }); // 1 hour
+    res.status(200).json({ url });
+  } catch (err) {
+    console.error("Signed URL error:", err);
+    res.status(500).json({ message: "Could not generate signed URL" });
+  }
+};

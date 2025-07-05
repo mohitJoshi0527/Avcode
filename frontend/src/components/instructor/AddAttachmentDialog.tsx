@@ -30,12 +30,12 @@ export default function AddAttachmentDialog({ courseId, onClose }: AddAttachment
     setLoading(true);
 
     const formData = new FormData();
-    formData.append('type', type);
+    formData.append('fileType', type);
     formData.append('file', file);
 
     try {
       await axios.post(
-        `/api/instructor/courses/${courseId}/attachments`,
+        `/api/course/${courseId}/attachments`,
         formData,
         {
           headers: { 'Content-Type': 'multipart/form-data' },

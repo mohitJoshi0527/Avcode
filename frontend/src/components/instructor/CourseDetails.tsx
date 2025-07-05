@@ -21,13 +21,19 @@ export default function CourseDetail() {
   const [showAddAttachment, setShowAddAttachment] = useState(false);
 
   const fetchCourse = async () => {
-    setLoading(true);
-    const res = await axios.get(`/api/instructor/courses/${courseId}`, {
-      withCredentials: true,
-    });
-    setCourse(res.data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const res = await axios.get(`/api/instructor/courses/${courseId}`, {
+        withCredentials: true,
+      });
+      setCourse(res.data);
+    } catch (err) {
+      console.error("Error fetching course:", err);
+    } finally {
+      setLoading(false);
+    }
   };
+
   const fetchAndPlay = async (videoId: string) => {
     try {
       const res = await axios.get<{ url: string }>(
@@ -39,6 +45,19 @@ export default function CourseDetail() {
       console.error("Could not fetch video URL", err);
     }
   };
+
+  const openSignedAttachment = async (s3Key: string) => {
+    try {
+      const res = await axios.get<{ url: string }>(
+        `/api/course/${courseId}/attachments/${encodeURIComponent(s3Key)}/url`,
+        { withCredentials: true }
+      );
+      window.open(res.data.url, "_blank");
+    } catch (err) {
+      console.error("Error opening attachment:", err);
+    }
+  };
+
   useEffect(() => {
     fetchCourse();
   }, [courseId]);
@@ -103,21 +122,33 @@ export default function CourseDetail() {
       <section className="space-y-4">
         <h3 className="text-xl font-semibold">Attachments</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {course.content.attachments.map((att: any) => (
-            <a
-              key={att._id}
-              href={att.fileURL}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-gray-50 transition"
-            >
-              <span className="text-lg">
-                {att.type === "pdf" ? "📄" : "💻"}
-              </span>
-              <span className="font-medium">
-                {att.fileURL.split("/").pop()}
-              </span>
-            </a>
+          {course.content.attachments.map((att: any, index: number) => (
+            <div key={index} className="space-y-2">
+              {att.pdf.map((file: any, i: number) => (
+                <button
+                  key={`pdf-${i}`}
+                  onClick={() => openSignedAttachment(file.s3Key)}
+                  className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-gray-50 transition w-full text-left"
+                >
+                  <span className="text-lg">📄</span>
+                  <span className="font-medium">
+                    {file.s3Key.split("/").pop()}
+                  </span>
+                </button>
+              ))}
+              {att.codeFiles.map((file: any, i: number) => (
+                <button
+                  key={`code-${i}`}
+                  onClick={() => openSignedAttachment(file.s3Key)}
+                  className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-gray-50 transition w-full text-left"
+                >
+                  <span className="text-lg">💻</span>
+                  <span className="font-medium">
+                    {file.s3Key.split("/").pop()}
+                  </span>
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       </section>
