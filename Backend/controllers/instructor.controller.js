@@ -1,4 +1,4 @@
-import User from '../models/user.model.js';
+import User from '../models/User.model.js'; // Adjust the import path as necessary
 import Course from '../models/course.model.js';
 export const getCourse = async (req, res) => {
   try {

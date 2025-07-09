@@ -11,9 +11,14 @@ export const googleCallback = [
     session: true,
   }),
   (req, res) => {
-    res.redirect('http://localhost:5173/dashboard'); // Redirect to a protected route after successful login
-  }
+    if (req.user.roles.includes('student')) {
+      res.redirect('http://localhost:5173/student/dashboard');
+    } else {
+      res.redirect('http://localhost:5173/dashboard');
+    }
+  },
 ];
+
 export const getCurrentUser = (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ message: 'Not logged in' });

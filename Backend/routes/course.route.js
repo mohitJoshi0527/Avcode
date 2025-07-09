@@ -35,7 +35,7 @@ router.post(
   uploadAttachment
 );
 router.get(
-  "/course/:courseId/attachments/:fileKey/url",
+  "/:courseId/attachments/:fileKey/url",
  ensureAuthenticated, authorizeRoles("instructor"),
   getAttachmentUrl
 );

@@ -1,4 +1,3 @@
-// src/components/CourseDetail.tsx
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -9,6 +8,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AddVideoDialog from "./AddVideoDialog";
 import AddAttachmentDialog from "./AddAttachmentDialog";
 
@@ -79,81 +85,93 @@ export default function CourseDetail() {
         </div>
       </header>
 
-      {/* Video List */}
-      <section className="space-y-4">
-        <h3 className="text-xl font-semibold">Videos</h3>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {course.content.videos.map((v: any) => (
-            <div
-              key={v._id}
-              className="border rounded-lg p-4 shadow hover:shadow-lg transition"
-            >
-              <h4 className="font-medium text-lg">{v.title}</h4>
-              <p className="text-sm text-gray-600 mb-2">{v.description}</p>
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fetchAndPlay(v._id)}
-                >
-                  ▶️ Play
-                </Button>
+      <Tabs defaultValue="videos" className="w-full">
+        <TabsList>
+          <TabsTrigger value="videos">Videos</TabsTrigger>
+          <TabsTrigger value="attachments">Attachments</TabsTrigger>
+        </TabsList>
 
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={async () => {
-                    await axios.delete(
-                      `/api/course/${courseId}/videos/${v._id}`,
-                      { withCredentials: true }
-                    );
-                    fetchCourse();
-                  }}
-                >
-                  Delete
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+        <TabsContent value="videos" className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {course.content.videos.map((v: any) => (
+              <Card key={v._id} className="hover:shadow-lg transition">
+                <CardHeader className="p-0">
+                  {v.thumbnailUrl ? (
+                    <img
+                      src={v.thumbnailUrl}
+                      alt={v.title}
+                      className="w-full h-40 object-cover rounded-t-lg"
+                    />
+                  ) : (
+                    <div className="w-full h-40 bg-gray-200 flex items-center justify-center rounded-t-lg">
+                      <span className="text-gray-500">No Thumbnail</span>
+                    </div>
+                  )}
+                </CardHeader>
+                <CardContent className="p-4">
+                  <CardTitle className="text-lg mb-2">{v.title}</CardTitle>
+                  <p className="text-sm text-gray-600 mb-4">{v.description}</p>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fetchAndPlay(v._id)}
+                    >
+                      ▶️ Play
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={async () => {
+                        await axios.delete(
+                          `/api/course/${courseId}/videos/${v._id}`,
+                          { withCredentials: true }
+                        );
+                        fetchCourse();
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
 
-      {/* Attachment List */}
-      <section className="space-y-4">
-        <h3 className="text-xl font-semibold">Attachments</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {course.content.attachments.map((att: any, index: number) => (
-            <div key={index} className="space-y-2">
-              {att.pdf.map((file: any, i: number) => (
-                <button
-                  key={`pdf-${i}`}
-                  onClick={() => openSignedAttachment(file.s3Key)}
-                  className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-gray-50 transition w-full text-left"
-                >
-                  <span className="text-lg">📄</span>
-                  <span className="font-medium">
-                    {file.s3Key.split("/").pop()}
-                  </span>
-                </button>
-              ))}
-              {att.codeFiles.map((file: any, i: number) => (
-                <button
-                  key={`code-${i}`}
-                  onClick={() => openSignedAttachment(file.s3Key)}
-                  className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-gray-50 transition w-full text-left"
-                >
-                  <span className="text-lg">💻</span>
-                  <span className="font-medium">
-                    {file.s3Key.split("/").pop()}
-                  </span>
-                </button>
-              ))}
-            </div>
-          ))}
-        </div>
-      </section>
+        <TabsContent value="attachments" className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {course.content.attachments.map((att: any, idx: number) => (
+              <Card key={idx} className="p-4 hover:shadow-lg transition">
+                <CardTitle className="text-md font-medium mb-2">Section {idx + 1}</CardTitle>
+                <div className="space-y-2">
+                  {att.pdf.map((file: any, i: number) => (
+                    <Button
+                      key={`pdf-${i}`}
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => openSignedAttachment(file.s3Key)}
+                    >
+                      📄 {file.s3Key.split("/").pop()}
+                    </Button>
+                  ))}
+                  {att.codeFiles.map((file: any, i: number) => (
+                    <Button
+                      key={`code-${i}`}
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => openSignedAttachment(file.s3Key)}
+                    >
+                      💻 {file.s3Key.split("/").pop()}
+                    </Button>
+                  ))}
+                </div>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
 
-      {/* Video Player Dialog */}
       <Dialog open={!!playUrl} onOpenChange={() => setPlayUrl(null)}>
         <DialogContent className="w-screen h-screen p-0 bg-black">
           {playUrl && (
@@ -170,7 +188,6 @@ export default function CourseDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* Add Video Dialog */}
       {showAddVideo && (
         <AddVideoDialog
           courseId={courseId!}
@@ -181,7 +198,6 @@ export default function CourseDetail() {
         />
       )}
 
-      {/* Add Attachment Dialog */}
       {showAddAttachment && (
         <AddAttachmentDialog
           courseId={courseId!}

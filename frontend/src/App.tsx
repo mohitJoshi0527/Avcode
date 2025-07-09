@@ -1,9 +1,9 @@
 // src/App.tsx
 import { Routes, Route } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import InstructorDashboard from '@/components/instructor/instructordashboard';
-import CourseDetail from './components/instructor/coursedetails';
-
+import InstructorDashboard from './components/instructor/InstructorDashboard';
+import CourseDetail from './components/instructor/CourseDetails';
+import StudentDashboard from './components/student/studentinstructor';
 function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4">
@@ -21,6 +21,7 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/dashboard" element={<InstructorDashboard />} />
       <Route path="/instructor/courses/:courseId" element={<CourseDetail />} />
+      <Route path="/student/dashboard" element={<StudentDashboard />} />
     </Routes>
   );
 }
