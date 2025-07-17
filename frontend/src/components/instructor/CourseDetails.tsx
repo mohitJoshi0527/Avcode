@@ -1,24 +1,31 @@
-import { useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { Button } from "@/components/ui/button";
+// FRONTEND: InstructorCourseDetail.tsx
+import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+  DialogFooter,
+} from '@/components/ui/dialog';
 import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
-} from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import AddVideoDialog from "./AddVideoDialog";
-import AddAttachmentDialog from "./AddAttachmentDialog";
+} from '@/components/ui/tabs';
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardTitle,
+} from '@/components/ui/card';
+import AddVideoDialog from './AddVideoDialog';
+import AddAttachmentDialog from './AddAttachmentDialog';
 
-export default function CourseDetail() {
+export default function InstructorCourseDetail() {
   const { courseId } = useParams();
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -26,15 +33,20 @@ export default function CourseDetail() {
   const [showAddVideo, setShowAddVideo] = useState(false);
   const [showAddAttachment, setShowAddAttachment] = useState(false);
 
+  // Comments state per video
+  const [commentsMap, setCommentsMap] = useState<Record<string, any[]>>({});
+  const [showComments, setShowComments] = useState<Record<string, boolean>>({});
+  const [replyContent, setReplyContent] = useState<Record<string, string>>({});
+
   const fetchCourse = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const res = await axios.get(`/api/instructor/courses/${courseId}`, {
         withCredentials: true,
       });
       setCourse(res.data);
     } catch (err) {
-      console.error("Error fetching course:", err);
+      console.error('Error fetching course:', err);
     } finally {
       setLoading(false);
     }
@@ -48,7 +60,7 @@ export default function CourseDetail() {
       );
       setPlayUrl(res.data.url);
     } catch (err) {
-      console.error("Could not fetch video URL", err);
+      console.error('Could not fetch video URL', err);
     }
   };
 
@@ -58,9 +70,45 @@ export default function CourseDetail() {
         `/api/course/${courseId}/attachments/${encodeURIComponent(s3Key)}/url`,
         { withCredentials: true }
       );
-      window.open(res.data.url, "_blank");
+      window.open(res.data.url, '_blank');
     } catch (err) {
-      console.error("Error opening attachment:", err);
+      console.error('Error opening attachment:', err);
+    }
+  };
+
+  const fetchComments = async (videoId: string) => {
+    try {
+      const res = await axios.get(
+        `/api/comment/course/${courseId}/video/${videoId}/comments`,
+        { withCredentials: true }
+      );
+      setCommentsMap(m => ({ ...m, [videoId]: res.data }));
+    } catch (err) {
+      console.error('Error fetching comments:', err);
+    }
+  };
+
+  const toggleComments = (videoId: string) => {
+    setShowComments(s => {
+      const next = !s[videoId];
+      if (next && !commentsMap[videoId]) fetchComments(videoId);
+      return { ...s, [videoId]: next };
+    });
+  };
+
+  const postReply = async (videoId: string, commentId: string) => {
+    const content = replyContent[commentId]?.trim();
+    if (!content) return;
+    try {
+      await axios.post(
+        `/api/comment/${commentId}/reply`,
+        { content },
+        { withCredentials: true }
+      );
+      setReplyContent(r => ({ ...r, [commentId]: '' }));
+      fetchComments(videoId);
+    } catch (err) {
+      console.error('Error posting reply:', err);
     }
   };
 
@@ -94,7 +142,7 @@ export default function CourseDetail() {
         <TabsContent value="videos" className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {course.content.videos.map((v: any) => (
-              <Card key={v._id} className="hover:shadow-lg transition">
+              <Card key={v._id} className="shadow-lg hover:shadow-2xl transition">
                 <CardHeader className="p-0">
                   {v.thumbnailUrl ? (
                     <img
@@ -111,7 +159,7 @@ export default function CourseDetail() {
                 <CardContent className="p-4">
                   <CardTitle className="text-lg mb-2">{v.title}</CardTitle>
                   <p className="text-sm text-gray-600 mb-4">{v.description}</p>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 mb-4">
                     <Button
                       variant="outline"
                       size="sm"
@@ -132,7 +180,50 @@ export default function CourseDetail() {
                     >
                       Delete
                     </Button>
+                    <Button variant="ghost" onClick={() => toggleComments(v._id)}>
+                      💬 Comments
+                    </Button>
                   </div>
+
+                  {showComments[v._id] && (
+                    <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                      <h4 className="text-lg font-medium text-gray-800">Comments</h4>
+                      {(commentsMap[v._id] || []).map(c => (
+                        <div key={c._id} className="p-3 bg-white rounded-md shadow-sm">
+                          <div className="flex justify-between mb-2">
+                            <span className="font-semibold text-gray-700">{c.author.name}</span>
+                            <span className="text-xs text-gray-400">
+                              {new Date(c.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+                          <p className="text-gray-800 mb-2">{c.content}</p>
+                          {c.replies?.map((r: any, i: number) => (
+                            <div key={i} className="ml-4 mt-2 p-2 bg-indigo-50 rounded">
+                              <div className="flex justify-between text-sm text-gray-700">
+                                <span>Reply by {r.author.name}</span>
+                                <span>{new Date(r.createdAt).toLocaleTimeString()}</span>
+                              </div>
+                              <p className="mt-1 text-gray-700">{r.content}</p>
+                            </div>
+                          ))}
+                          <textarea
+                            rows={1}
+                            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 mt-2"
+                            placeholder="Reply to comment..."
+                            value={replyContent[c._id] || ''}
+                            onChange={e => setReplyContent(p => ({ ...p, [c._id]: e.target.value }))}
+                          />
+                          <Button
+                            size="sm"
+                            className="mt-1"
+                            onClick={() => postReply(v._id, c._id)}
+                          >
+                            Reply
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -182,7 +273,7 @@ export default function CourseDetail() {
               disableRemotePlayback
               autoPlay
               className="w-full h-full object-contain"
-              onContextMenu={(e) => e.preventDefault()}
+              onContextMenu={e => e.preventDefault()}
             />
           )}
         </DialogContent>

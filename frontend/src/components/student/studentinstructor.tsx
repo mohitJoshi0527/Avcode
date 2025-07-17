@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Star } from 'lucide-react';
-import { Rating } from '@/components/ui/rating'; // custom rating input component
+import { Rating } from '@/components/ui/rating';
 
 interface StudentCourse {
   id: string;
@@ -57,6 +57,8 @@ export default function StudentDashboard() {
   const [loadingRemaining, setLoadingRemaining] = useState(true);
   const [tab, setTab] = useState<Tab>('enrolled');
 
+  // Dialogs
+  const [instructorDialogOpen, setInstructorDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [rateDialogOpen, setRateDialogOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<StudentCourse | null>(null);
@@ -69,66 +71,64 @@ export default function StudentDashboard() {
     axios
       .get('/auth/me', { withCredentials: true })
       .then(res => setUser({ name: res.data.name, avatarUrl: res.data.avatarUrl }))
-      .catch(err => console.error(err))
+      .catch(console.error)
       .finally(() => setLoadingProfile(false));
   }, []);
 
-  // Fetch courses
+  // Load courses
   const loadCourses = () => {
     setLoadingEnrolled(true);
     setLoadingRemaining(true);
     Promise.all([
       axios.get('/api/student/enrolled', { withCredentials: true }).catch(() => ({ data: [] })),
       axios.get('/api/student/all', { withCredentials: true }).catch(() => ({ data: [] })),
-    ]).then(([enRes, allRes]: any) => {
-      const enrolledData = enRes.data;
-      const allData = allRes.data;
-      setEnrolledCourses(
-        enrolledData.map((c: any) => ({
-          id: c._id,
-          title: c.title,
-          progress: c.progress || 0,
-          instructorName: c.createdBy?.name || 'Unknown',
-          description: c.description,
-          tags: c.tags,
-          rating: c.content.rating,
-        }))
-      );
-      setRemainingCourses(
-        allData.map((c: any) => ({
-          id: c._id,
-          title: c.title,
-          instructorName: c.createdBy?.name || 'Unknown',
-          description: c.description,
-          tags: c.tags,
-          rating: c.content.rating,
-        }))
-      );
-      if (enrolledData.length === 0) setTab('remaining');
-    }).finally(() => {
-      setLoadingEnrolled(false);
-      setLoadingRemaining(false);
-    });
+    ])
+      .then(([enRes, allRes]: any) => {
+        setEnrolledCourses(
+          enRes.data.map((c: any) => ({
+            id: c._id,
+            title: c.title,
+            progress: c.progress || 0,
+            instructorName: c.createdBy?.name || 'Unknown',
+            description: c.description,
+            tags: c.tags,
+            rating: c.content.rating,
+          }))
+        );
+        setRemainingCourses(
+          allRes.data.map((c: any) => ({
+            id: c._id,
+            title: c.title,
+            instructorName: c.createdBy?.name || 'Unknown',
+            description: c.description,
+            tags: c.tags,
+            rating: c.content.rating,
+          }))
+        );
+        if (enRes.data.length === 0) setTab('remaining');
+      })
+      .finally(() => {
+        setLoadingEnrolled(false);
+        setLoadingRemaining(false);
+      });
   };
   useEffect(loadCourses, []);
 
-  // Open Details Dialog
+  // Handlers
+  const openInstructorDialog = () => setInstructorDialogOpen(true);
   const openDetails = (course: StudentCourse) => {
     setSelectedCourse(course);
     setDetailsDialogOpen(true);
   };
-
-  // Open Rate Dialog
   const openRate = (course: StudentCourse) => {
     setSelectedCourse(course);
     setRatingValue(0);
     setRateDialogOpen(true);
   };
 
-  // Enroll handler
-  const handleEnroll = async (courseId: string) => {
+  const handleEnroll = async (id: string) => {
     try {
-      await axios.post(`/api/student/enroll/${courseId}`, {}, { withCredentials: true });
+      await axios.post(`/api/student/enroll/${id}`, {}, { withCredentials: true });
       loadCourses();
       setDetailsDialogOpen(false);
     } catch (err) {
@@ -136,7 +136,6 @@ export default function StudentDashboard() {
     }
   };
 
-  // Rate submit
   const submitRating = async () => {
     if (!selectedCourse) return;
     try {
@@ -159,11 +158,42 @@ export default function StudentDashboard() {
       <header className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <Avatar>
-            {user?.avatarUrl ? <AvatarImage src={user.avatarUrl} alt={user.name} /> : <AvatarFallback className="bg-green-600 text-white">{user?.name.charAt(0)}</AvatarFallback>}
+            {user?.avatarUrl ? (
+              <AvatarImage src={user.avatarUrl} alt={user.name} />
+            ) : (
+              <AvatarFallback className="bg-green-600 text-white">
+                {user?.name.charAt(0)}
+              </AvatarFallback>
+            )}
           </Avatar>
           <h1 className="text-3xl font-extrabold text-gray-800">Hello, {user?.name}</h1>
         </div>
+        <Button onClick={openInstructorDialog} size="lg" className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg hover:shadow-2xl">
+          Become an Instructor
+        </Button>
       </header>
+
+      {/* Instructor Dialog */}
+      <Dialog open={instructorDialogOpen} onOpenChange={setInstructorDialogOpen}>
+        <DialogContent className="max-w-md bg-white p-6 rounded-2xl shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-green-600">
+              Become an Instructor
+            </DialogTitle>
+          </DialogHeader>
+          <p className="mb-4 text-gray-600">
+            By becoming an instructor, you can create courses and share your knowledge.
+          </p>
+          <DialogFooter className="flex justify-end space-x-2">
+            <Button onClick={() => { setInstructorDialogOpen(false); navigate('/dashboard'); }}>
+              Confirm
+            </Button>
+            <Button variant="outline" onClick={() => setInstructorDialogOpen(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Tabs value={tab} onValueChange={v => setTab(v as Tab)} className="space-y-4">
         <TabsList>
@@ -172,22 +202,26 @@ export default function StudentDashboard() {
         </TabsList>
 
         <TabsContent value="enrolled">
-          {loadingEnrolled ? <p className="text-center text-gray-500">Loading...</p> : (
+          {loadingEnrolled ? (
+            <p className="text-center text-gray-500">Loading enrolled courses...</p>
+          ) : (
             <ScrollArea className="h-[60vh]">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {enrolledCourses.map(course => (
-                  <Card key={course.id} className="shadow-lg hover:shadow-2xl transition">
+                {enrolledCourses.map(c => (
+                  <Card key={c.id} className="shadow-lg hover:shadow-2xl transition">
                     <CardHeader className="bg-gradient-to-r from-blue-100 to-indigo-100 p-5 rounded-t-xl">
-                      <CardTitle className="text-xl font-semibold">{course.title}</CardTitle>
+                      <CardTitle className="text-xl font-semibold">{c.title}</CardTitle>
+                      <CardDescription>By {c.instructorName}</CardDescription>
                     </CardHeader>
                     <CardContent className="p-5">
-                      <p className="text-gray-600 mb-2">By {course.instructorName}</p>
-                      <p className="text-green-600 mb-3">Progress: {course.progress}%</p>
-                      <div className="flex items-center mb-3"><Star className="mr-2" size={16}/> {course.rating?.toFixed(1) || '0.0'}</div>
+                      <p className="text-green-600 mb-3">Progress: {c.progress}%</p>
+                      <div className="flex items-center mb-3">
+                        <Star className="mr-2" size={16} /> {c.rating?.toFixed(1) || '0.0'}
+                      </div>
                     </CardContent>
                     <CardFooter className="flex justify-between p-5">
-                      <Button variant="ghost" onClick={() => navigate(`/student/courses/${course.id}`)}>Continue</Button>
-                      <Button onClick={() => openRate(course)}>Rate</Button>
+                      <Button variant="ghost" onClick={() => navigate(`/student/courses/${c.id}`)}>Continue</Button>
+                      <Button onClick={() => openRate(c)}>Rate</Button>
                     </CardFooter>
                   </Card>
                 ))}
@@ -197,19 +231,21 @@ export default function StudentDashboard() {
         </TabsContent>
 
         <TabsContent value="remaining">
-          {loadingRemaining ? <p className="text-center text-gray-500">Loading...</p> : (
+          {loadingRemaining ? (
+            <p className="text-center text-gray-500">Loading courses...</p>
+          ) : (
             <ScrollArea className="h-[60vh]">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {remainingCourses.map(course => (
-                  <Card key={course.id} className="shadow-lg hover:shadow-2xl transition">
+                {remainingCourses.map(c => (
+                  <Card key={c.id} className="shadow-lg hover:shadow-2xl transition">
                     <CardHeader className="bg-gradient-to-r from-green-100 to-lime-100 p-5 rounded-t-xl">
-                      <CardTitle className="text-xl font-semibold">{course.title}</CardTitle>
+                      <CardTitle className="text-xl font-semibold">{c.title}</CardTitle>
                     </CardHeader>
                     <CardContent className="p-5 flex flex-col justify-between">
-                      <p className="text-gray-600 mb-4 line-clamp-3">{course.description}</p>
+                      <p className="text-gray-600 mb-4 line-clamp-3">{c.description}</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">By {course.instructorName}</span>
-                        <Button onClick={() => openDetails(course)}>View Details</Button>
+                        <span className="text-sm text-gray-500">By {c.instructorName}</span>
+                        <Button onClick={() => openDetails(c)}>View Details</Button>
                       </div>
                     </CardContent>
                   </Card>

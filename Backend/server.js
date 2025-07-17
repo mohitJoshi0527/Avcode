@@ -11,25 +11,19 @@ import "./utils/passport.js"; // load Google strategy
 import authRoutes from "./routes/auth.route.js";
 import courseRoutes from "./routes/course.route.js";
 import instructorRoutes from "./routes/instructor.route.js"; 
-import studentRoutes from "./routes/student.route.js"; // Ensure this import is correct
+import studentRoutes from "./routes/student.route.js"; 
+import commentRoutes from "./routes/comment.route.js"; 
 import cors from "cors";
-// ✅ Load environment variables
-dotenv.config(); // `.env` is now in /Backend
+dotenv.config(); 
 
-// ✅ Create express app
 const app = express();
 app.use(cors({
-  origin: process.env.CLIENT_URL, // Adjust as needed
+  origin: process.env.CLIENT_URL, 
   credentials: true,
 }))
-// ✅ Connect to MongoDB
 connectDB();
-
-// ✅ Middleware
 app.use(express.json());
 app.use(cookieParser());
-
-// ✅ Sessions (MongoDB store)
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -40,30 +34,25 @@ app.use(
       collectionName: "sessions",
     }),
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      maxAge: 1000 * 60 * 60 * 24, 
       httpOnly: true,
-      secure: false, // true if HTTPS (production)
+      secure: false, 
       sameSite : 'lax',
     },
   })
 );
 
-// ✅ Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ✅ Routes
 app.use("/auth", authRoutes);
 app.use("/api/course", courseRoutes); 
 app.use("/api/instructor",instructorRoutes); 
-app.use("/api/student", studentRoutes); // Ensure this route is defined in student.route.js
-// Ensure this route is defined in instructor.route.js
-// ✅ Test route (optional)
+app.use("/api/student", studentRoutes); 
+app.use("/api/comment",commentRoutes);
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
-
-// ✅ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
