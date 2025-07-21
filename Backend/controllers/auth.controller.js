@@ -12,9 +12,9 @@ export const googleCallback = [
   }),
   (req, res) => {
     if (req.user.roles.includes('student')) {
-      res.redirect('http://localhost:5173/student/dashboard');
+      res.redirect('http://localhost:5000/student/dashboard');
     } else {
-      res.redirect('http://localhost:5173/dashboard');
+      res.redirect('http://localhost:5000/dashboard');
     }
   },
 ];
