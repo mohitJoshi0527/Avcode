@@ -1,17 +1,18 @@
-// src/App.tsx
+import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import InstructorDashboard from './components/instructor/InstructorDashboard';
 import CourseDetail from './components/instructor/CourseDetails';
 import StudentDashboard from './components/student/studentinstructor';
 import StudentCourseDetail from './components/student/courseContent';
+
 function Home() {
+  useEffect(() => {
+    window.location.href = 'http://localhost:5000/auth/google';
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <h1 className="text-2xl font-semibold">Welcome to Avcode</h1>
-      <Button asChild>
-        <a href="/dashboard">Go to Dashboard</a>
-      </Button>
+      <h1 className="text-2xl font-semibold">Redirecting to Google Login...</h1>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-// FRONTEND: CourseContent.tsx
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -11,12 +10,10 @@ export default function CourseContent() {
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // comments state
   const [commentsMap, setCommentsMap] = useState<Record<string, any[]>>({});
   const [showComments, setShowComments] = useState<Record<string, boolean>>({});
   const [newComment, setNewComment] = useState<Record<string, string>>({});
 
-  // fetch course and content
   const fetchCourse = async () => {
     setLoading(true);
     try {
@@ -29,7 +26,6 @@ export default function CourseContent() {
     }
   };
 
-  // fetch comments for a video
   const fetchComments = async (videoId: string) => {
     try {
       const res = await axios.get(
@@ -42,7 +38,6 @@ export default function CourseContent() {
     }
   };
 
-  // toggle comment panel
   const toggleComments = (videoId: string) => {
     setShowComments(prev => {
       const open = !prev[videoId];
@@ -51,7 +46,6 @@ export default function CourseContent() {
     });
   };
 
-  // post new comment
   const postComment = async (videoId: string) => {
     const text = (newComment[videoId] || '').trim();
     if (!text) return;

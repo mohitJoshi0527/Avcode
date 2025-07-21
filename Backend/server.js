@@ -1,5 +1,3 @@
-// server.js
-
 import express from "express";
 import dotenv from "dotenv";
 import session from "express-session";
@@ -13,9 +11,10 @@ import courseRoutes from "./routes/course.route.js";
 import instructorRoutes from "./routes/instructor.route.js"; 
 import studentRoutes from "./routes/student.route.js"; 
 import commentRoutes from "./routes/comment.route.js"; 
+import path from "path";
 import cors from "cors";
 dotenv.config(); 
-
+const _dirname=path.resolve();
 const app = express();
 app.use(cors({
   origin: process.env.CLIENT_URL, 
