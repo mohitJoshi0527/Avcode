@@ -12,9 +12,9 @@ export const googleCallback = [
   }),
   (req, res) => {
     if (req.user.roles.includes('student')) {
-      res.redirect('http://localhost:5000/student/dashboard');
+      res.redirect('https://avcode.onrender.com/student/dashboard');
     } else {
-      res.redirect('http://localhost:5000/dashboard');
+      res.redirect('https://avcode.onrender.com/dashboard');
     }
   },
 ];
