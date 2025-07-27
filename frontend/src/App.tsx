@@ -7,7 +7,7 @@ import StudentCourseDetail from './components/student/courseContent';
 
 function Home() {
   useEffect(() => {
-    window.location.href = 'http://localhost:5000/auth/google';
+    window.location.href = 'https://avcode.onrender.com/auth/google';
   }, []);
 
   return (
