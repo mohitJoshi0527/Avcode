@@ -1,12 +1,12 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "backend/server.js",
+  "main": "server.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon backend/server.js",
+    "dev": "nodemon Backend/server.js",
     "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend ",
-    "start": "node backend/server.js"
+    "start": "node Backend/server.js"
   },
   "author": "Mohit and Aman",
   "license": "ISC",
