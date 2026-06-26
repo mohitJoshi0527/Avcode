@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import AddCourseForm from './CreateCourse';
+import AddCourseForm from './createcourse';
 
 interface Course {
   id: string;
@@ -25,38 +25,78 @@ interface Course {
 export default function InstructorDashboard() {
   const [open, setOpen] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get('/api/instructor/courses', { withCredentials: true });
+      setCourses(res.data.map((c: any) => ({
+        id: c._id,
+        title: c.title,
+        description: c.description,
+        rating: c.rating || 0,
+        comments: c.comments || 0,
+      })));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchCourses = async () => {
+    const checkAuthAndFetch = async () => {
       try {
-        const res = await axios.get('/api/instructor/courses', { withCredentials: true });
-        setCourses(res.data.map((c: any) => ({
-          id: c._id,
-          title: c.title,
-          description: c.description,
-          rating: c.rating || 0,
-          comments: c.comments || 0,
-        })));
+        const authRes = await axios.get('/auth/me', { withCredentials: true });
+        if (!authRes.data.roles || !authRes.data.roles.includes('instructor')) {
+          navigate('/student/dashboard');
+          return;
+        }
+        setCheckingAuth(false);
+        
+        await fetchCourses();
       } catch (err) {
         console.error(err);
-      } finally {
-        setLoading(false);
+        navigate('/'); // redirect to login if not authenticated
       }
     };
-    fetchCourses();
+    checkAuthAndFetch();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await axios.get('/auth/logout', { withCredentials: true });
+      navigate('/');
+    } catch (err) {
+      console.error(err);
+      navigate('/');
+    }
+  };
+
+  if (checkingAuth) {
+    return <p className="p-6 text-center text-gray-500">Verifying access...</p>;
+  }
 
   return (
     <div className="p-6 space-y-6 bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 min-h-screen">
-      <header className="flex justify-between items-center">
+      <header className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <h1 className="text-4xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
           Instructor Dashboard
         </h1>
-        <Button onClick={() => setOpen(true)} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
-          + Add Course
-        </Button>
+        <div className="flex space-x-3">
+          <Button variant="outline" onClick={() => navigate('/student/dashboard')}>
+            Switch to Student View
+          </Button>
+          <Button onClick={() => setOpen(true)} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg hover:shadow-xl">
+            + Add Course
+          </Button>
+          <Button variant="destructive" onClick={handleLogout}>
+            Logout
+          </Button>
+        </div>
       </header>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -66,7 +106,7 @@ export default function InstructorDashboard() {
               Create New Course
             </DialogTitle>
           </DialogHeader>
-          <AddCourseForm onClose={() => setOpen(false)} />
+          <AddCourseForm onClose={() => { setOpen(false); fetchCourses(); }} />
         </DialogContent>
       </Dialog>
 

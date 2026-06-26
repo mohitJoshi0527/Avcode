@@ -7,10 +7,7 @@ export const getCourse = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    const courses = user.createdCourses;
-    if (courses.length === 0) {
-      return res.status(404).json({ message: 'No courses found for this user' });
-    }
+    const courses = user.createdCourses || [];
     res.status(200).json(courses);
   } catch (error) {
     console.error(error);

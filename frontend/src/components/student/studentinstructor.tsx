@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -151,6 +152,28 @@ export default function StudentDashboard() {
     }
   };
 
+  const handleBecomeInstructor = async () => {
+    try {
+      await axios.post('/auth/become-instructor', {}, { withCredentials: true });
+      toast.success('You are now an instructor!');
+      setInstructorDialogOpen(false);
+      navigate('/dashboard');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Failed to update your role.');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await axios.get('/auth/logout', { withCredentials: true });
+      navigate('/');
+    } catch (err) {
+      console.error(err);
+      navigate('/');
+    }
+  };
+
   if (loadingProfile) return <p className="p-6 text-center">Loading profile...</p>;
 
   return (
@@ -168,9 +191,14 @@ export default function StudentDashboard() {
           </Avatar>
           <h1 className="text-3xl font-extrabold text-gray-800">Hello, {user?.name}</h1>
         </div>
-        <Button onClick={openInstructorDialog} size="lg" className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg hover:shadow-2xl">
-          Become an Instructor
-        </Button>
+        <div className="flex space-x-3">
+          <Button onClick={openInstructorDialog} size="lg" className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg hover:shadow-2xl">
+            Become an Instructor
+          </Button>
+          <Button variant="destructive" size="lg" onClick={handleLogout}>
+            Logout
+          </Button>
+        </div>
       </header>
 
       {/* Instructor Dialog */}
@@ -185,7 +213,7 @@ export default function StudentDashboard() {
             By becoming an instructor, you can create courses and share your knowledge.
           </p>
           <DialogFooter className="flex justify-end space-x-2">
-            <Button onClick={() => { setInstructorDialogOpen(false); navigate('/dashboard'); }}>
+            <Button onClick={handleBecomeInstructor}>
               Confirm
             </Button>
             <Button variant="outline" onClick={() => setInstructorDialogOpen(false)}>

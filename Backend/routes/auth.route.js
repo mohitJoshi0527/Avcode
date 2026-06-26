@@ -1,5 +1,5 @@
 import express from 'express';
-import { getCurrentUser, logout, manualSignup, manualLogin } from '../controllers/auth.controller.js';
+import { getCurrentUser, logout, manualSignup, manualLogin, becomeInstructor } from '../controllers/auth.controller.js';
 import { googleCallback, googleLogin } from '../controllers/auth.controller.js';
 
 const router = express.Router();
@@ -27,5 +27,6 @@ router.get('/logout', logout);
 // Local manual auth routes
 router.post('/signup', manualSignup);
 router.post('/login', manualLogin);
+router.post('/become-instructor', becomeInstructor);
 
 export default router;

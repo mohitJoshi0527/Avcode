@@ -37,15 +37,15 @@ export const getCurrentUser = (req, res) => {
   }
   res.json(req.user); 
 };
-export const logout = (req, res) => {
- req.logout(err => {
-  if (err) return next(err);
-  req.session.destroy(err => {
+export const logout = (req, res, next) => {
+  req.logout(err => {
     if (err) return next(err);
-    res.clearCookie('connect.sid');
-    res.redirect('/');
+    req.session.destroy(err => {
+      if (err) return next(err);
+      res.clearCookie('connect.sid');
+      return res.json({ message: 'Logged out successfully' });
+    });
   });
-});
 };
 
 export const manualSignup = async (req, res) => {
@@ -120,6 +120,26 @@ export const manualLogin = async (req, res) => {
         user: { id: user._id, name: user.name, email: user.email, roles: user.roles }
       });
     });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const becomeInstructor = async (req, res) => {
+  try {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Not logged in' });
+    }
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    if (!user.roles.includes('instructor')) {
+      user.roles.push('instructor');
+      await user.save();
+    }
+    return res.json({ message: 'Successfully became an instructor', user });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });
