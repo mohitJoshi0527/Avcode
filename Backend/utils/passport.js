@@ -26,8 +26,13 @@ passport.use(
         // ✅ Check if user exists
         let user = await User.findOne({ email });
 
-        // ✅ If not, create user
-        if (!user) {
+        if (user) {
+          // Prevent cross-authentication: if user has a password but no googleId, they are a manual user
+          if (user.password && !user.googleId) {
+            return done(null, false, { message: 'You registered manually. Please use Email/Password login.' });
+          }
+        } else {
+          // ✅ If not, create user
           user = await User.create({
             googleId: profile.id,
             name: profile.displayName,
