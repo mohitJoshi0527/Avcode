@@ -32,7 +32,6 @@ export default function InstructorCourseDetail() {
   const [showAddVideo, setShowAddVideo] = useState(false);
   const [showAddAttachment, setShowAddAttachment] = useState(false);
 
-  // Comments state per video
   const [commentsMap, setCommentsMap] = useState<Record<string, any[]>>({});
   const [showComments, setShowComments] = useState<Record<string, boolean>>({});
   const [replyContent, setReplyContent] = useState<Record<string, string>>({});

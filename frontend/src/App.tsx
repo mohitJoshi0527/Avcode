@@ -1,12 +1,21 @@
 import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import InstructorDashboard from './components/instructor/InstructorDashboard';
+import InstructorDashboard from './components/instructor/instructordashboard';
 import CourseDetail from './components/instructor/CourseDetails';
 import StudentDashboard from './components/student/studentinstructor';
 import StudentCourseDetail from './components/student/courseContent';
 
-import { Toaster } from 'sonner';
-import AuthPage from './components/auth/AuthPage';
+function Home() {
+  useEffect(() => {
+    window.location.href = 'https://avcode.onrender.com/auth/google';
+  }, []);
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+      <h1 className="text-2xl font-semibold">Redirecting to Google Login...</h1>
+    </div>
+  );
+}
 
 export default function App() {
   return (

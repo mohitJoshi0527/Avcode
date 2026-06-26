@@ -6,30 +6,20 @@ export const googleLogin = passport.authenticate('google', {
   hd: 'mnit.ac.in', 
   prompt: 'select_account',
 });
-export const googleCallback = (req, res, next) => {
-  passport.authenticate('google', (err, user, info) => {
-    if (err) {
-      console.error(err);
-      return res.redirect('http://localhost:5173/?error=InternalServerError');
+export const googleCallback = [
+  passport.authenticate('google', {
+    failureRedirect: '/auth/google',
+    failureMessage: true,
+    session: true,
+  }),
+  (req, res) => {
+    if (req.user.roles.includes('student')) {
+      res.redirect('https://avcode.onrender.com/student/dashboard');
+    } else {
+      res.redirect('https://avcode.onrender.com/dashboard');
     }
-    if (!user) {
-      // info.message contains the string from our done(null, false, { message: '...' })
-      const errorMsg = info?.message || 'Authentication failed';
-      return res.redirect(`http://localhost:5173/?error=${encodeURIComponent(errorMsg)}`);
-    }
-    req.logIn(user, (loginErr) => {
-      if (loginErr) {
-        console.error(loginErr);
-        return res.redirect('http://localhost:5173/?error=LoginFailed');
-      }
-      if (user.roles.includes('instructor')) {
-        return res.redirect('http://localhost:5173/dashboard');
-      } else {
-        return res.redirect('http://localhost:5173/student/dashboard');
-      }
-    });
-  })(req, res, next);
-};
+  },
+];
 
 export const getCurrentUser = (req, res) => {
   if (!req.isAuthenticated()) {

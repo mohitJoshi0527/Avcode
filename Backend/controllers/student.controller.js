@@ -4,7 +4,6 @@ import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl }   from '@aws-sdk/s3-request-presigner';
 import { s3 }        from '../config/aws.js';
 
-// enrolledCourses controller
 export const enrolledCourses = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -25,9 +24,6 @@ export const enrolledCourses = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
-
-// allCourses controller
 export const allCourses = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -55,13 +51,9 @@ export async function pushenrollCourse(req, res) {
 
     const user = await User.findById(studentId);
     if (!user) return res.status(404).json({ message: 'User not found' });
-
-    // Prevent duplicate enrollment
     if (user.enrolledCourses.includes(courseId)) {
       return res.status(400).json({ message: 'Already enrolled' });
     }
-
-    // Verify course exists
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ message: 'Course not found' });
 
@@ -84,8 +76,6 @@ export async function getCourseContent(req, res) {
     }
     const course = await Course.findById(courseId).lean();
     if (!course) return res.status(404).json({ message: 'Course not found' });
-
-    // Helper to generate signed URL for a given key
     async function generateSignedUrl(key) {
       const cmd = new GetObjectCommand({
         Bucket: process.env.AWS_BUCKET_NAME,
@@ -93,8 +83,6 @@ export async function getCourseContent(req, res) {
       });
       return getSignedUrl(s3, cmd, { expiresIn: 300 });
     }
-
-    // Generate signed URLs for videos
     const videos = await Promise.all(
       course.content.videos.map(async v => ({
         _id: v._id,
@@ -103,8 +91,6 @@ export async function getCourseContent(req, res) {
         url: await generateSignedUrl(v.s3Key),
       }))
     );
-
-    // Generate signed URLs for attachments
     const attachments = await Promise.all(
       course.content.attachments.map(async sec => {
         const pdfs = await Promise.all(
@@ -132,15 +118,12 @@ export async function getCourseContent(req, res) {
     return res.status(500).json({ message: 'Server error' });
   }
 }
-// Rate a course
 export async function rateCourse(req, res) {
   try {
     const { courseId } = req.params;
     const { rating } = req.body; // 1-5
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ message: 'Course not found' });
-
-    // initialize counters if not exist
     course.content.ratingCount = course.content.ratingCount || 0;
     course.content.ratingSum = course.content.ratingSum || 0;
 

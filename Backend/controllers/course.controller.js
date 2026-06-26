@@ -42,12 +42,10 @@ export const uploadCourseVideo = async (req, res) => {
     if (!req.file || !req.file.key) {
       return res.status(400).json({ message: 'Video upload failed' });
     }
-
-    // Build your video subdocument
     const videoData = {
       title,
       description,
-      s3Key: req.file.key,     // <-- save the key, not the public URL
+      s3Key: req.file.key,    
     };
 
     const course = await Course.findById(courseId);
@@ -94,11 +92,6 @@ export const deleteCourseVideo = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-// controllers/video.js
-
-// controllers/video.js
-
-
 export const getVideoUrl = async (req, res) => {
   try {
     // …find course + auth…
@@ -106,7 +99,6 @@ export const getVideoUrl = async (req, res) => {
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ message: 'Course not found' });
 
-    // make sure only the creator (or whoever you allow) can get the URL
     if (course.createdBy.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized' });
     }
@@ -118,7 +110,6 @@ export const getVideoUrl = async (req, res) => {
       Key:    video.s3Key,
     });
 
-    // this returns a Promise<string>
     const url = await getSignedUrl(s3, cmd, { expiresIn: 60 * 5 });
 
     res.json({ url });

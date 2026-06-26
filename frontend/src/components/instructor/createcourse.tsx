@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import axios from 'axios';
 
 interface AddCourseFormProps {
-  onClose: () => void; // receives a function from InstructorDashboard
+  onClose: () => void;
 }
 
 export default function AddCourseForm({ onClose }: AddCourseFormProps) {
