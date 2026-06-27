@@ -142,3 +142,10 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+
+# AI Service
+ai-service/venv/
+ai-service/__pycache__/
+*.pyc
+ai-service/.env
+ai-service/.pytest_cache/

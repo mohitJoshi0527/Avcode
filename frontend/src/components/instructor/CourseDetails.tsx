@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/card';
 import AddVideoDialog from './AddVideoDialog';
 import AddAttachmentDialog from './AddAttachmentDialog';
+import VideoPlayer from '@/components/ui/VideoPlayer';
 
 export default function InstructorCourseDetail() {
   const { courseId } = useParams();
@@ -265,15 +266,12 @@ export default function InstructorCourseDetail() {
       <Dialog open={!!playUrl} onOpenChange={() => setPlayUrl(null)}>
         <DialogContent className="w-screen h-screen p-0 bg-black">
           {playUrl && (
-            <video
-              src={playUrl}
-              controls
-              controlsList="nodownload"
-              disableRemotePlayback
-              autoPlay
-              className="w-full h-full object-contain"
-              onContextMenu={e => e.preventDefault()}
-            />
+            <div className="w-full h-full bg-black flex items-center justify-center">
+              <VideoPlayer 
+                url={playUrl} 
+                onContextMenu={e => e.preventDefault()} 
+              />
+            </div>
           )}
         </DialogContent>
       </Dialog>

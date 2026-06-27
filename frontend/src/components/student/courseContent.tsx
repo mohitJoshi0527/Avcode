@@ -4,11 +4,15 @@ import axios from 'axios';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import VideoPlayer from '@/components/ui/VideoPlayer';
+import StudyBuddyChat from './StudyBuddyChat';
 
 export default function CourseContent() {
   const { courseId } = useParams();
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [playUrl, setPlayUrl] = useState<string | null>(null);
 
   const [commentsMap, setCommentsMap] = useState<Record<string, any[]>>({});
   const [showComments, setShowComments] = useState<Record<string, boolean>>({});
@@ -78,6 +82,7 @@ export default function CourseContent() {
         <TabsList className="bg-gradient-to-r from-blue-50 to-indigo-50 p-1 rounded-xl">
           <TabsTrigger value="videos">Videos</TabsTrigger>
           <TabsTrigger value="attachments">Attachments</TabsTrigger>
+          <TabsTrigger value="studybuddy">Study Buddy</TabsTrigger>
         </TabsList>
 
         {/* Videos */}
@@ -91,7 +96,7 @@ export default function CourseContent() {
                 <CardContent className="p-4">
                   <p className="text-sm text-gray-600 mb-4">{v.description}</p>
                   <div className="flex space-x-2 mb-4">
-                    <Button variant="outline" onClick={() => window.open(v.url, '_blank')}>▶️ Play</Button>
+                    <Button variant="outline" onClick={() => setPlayUrl(v.url)}>▶️ Play</Button>
                     <Button variant="ghost" onClick={() => toggleComments(v._id)}>💬 Comments</Button>
                   </div>
 
@@ -152,7 +157,24 @@ export default function CourseContent() {
             ))}
           </div>
         </TabsContent>
+
+        <TabsContent value="studybuddy" className="space-y-4">
+          <StudyBuddyChat courseId={courseId!} />
+        </TabsContent>
       </Tabs>
+
+      <Dialog open={!!playUrl} onOpenChange={() => setPlayUrl(null)}>
+        <DialogContent className="max-w-[90vw] w-full h-[90vh] p-0 bg-black flex items-center justify-center">
+          {playUrl && (
+            <div className="w-full h-full flex items-center justify-center bg-black">
+              <VideoPlayer 
+                url={playUrl} 
+                onContextMenu={e => e.preventDefault()} 
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
