@@ -149,3 +149,16 @@ ai-service/__pycache__/
 *.pyc
 ai-service/.env
 ai-service/.pytest_cache/
+
+# Frontend / Vite / Editor
+dist-ssr
+*.local
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
