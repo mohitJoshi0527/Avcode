@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
-from rag import process_pdf_url, generate_chat_response
+from rag import process_pdf_url, process_code_url, generate_chat_response
 
 load_dotenv()
 
@@ -25,6 +25,10 @@ class IngestRequest(BaseModel):
     course_id: str
     pdf_url: str
 
+class IngestCodeRequest(BaseModel):
+    course_id: str
+    code_url: str
+
 @app.get("/")
 def read_root():
     return {"message": "Agentic Study Buddy API is running"}
@@ -42,6 +46,14 @@ async def chat_with_agent(req: ChatRequest):
     try:
         answer = generate_chat_response(req.query, req.course_id)
         return {"response": answer}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ingest-code")
+async def ingest_code(req: IngestCodeRequest):
+    try:
+        chunks_added = process_code_url(req.code_url, req.course_id)
+        return {"status": "success", "message": f"Added {chunks_added} code chunks to vector store for course {req.course_id}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

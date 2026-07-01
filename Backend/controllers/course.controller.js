@@ -3,6 +3,7 @@ import User from '../models/User.model.js';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl }   from '@aws-sdk/s3-request-presigner';
 import { s3 }        from '../config/aws.js';
+import axios from 'axios';
 export const createCourse = async (req, res) => {
   try {
     const { title, description, tags } = req.body;
@@ -161,6 +162,32 @@ export const uploadAttachment = async (req, res) => {
 
     course.content.attachments.push(attachmentData);
     await course.save();
+
+    // Send file to AI service for RAG vectorization (fire-and-forget)
+    try {
+      const signedUrlCmd = new GetObjectCommand({
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: s3Key,
+      });
+      const signedFileUrl = await getSignedUrl(s3, signedUrlCmd, { expiresIn: 60 * 15 });
+      const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+
+      if (fileType === 'pdf') {
+        await axios.post(`${aiServiceUrl}/ingest`, {
+          course_id: courseId,
+          pdf_url: signedFileUrl,
+        });
+        console.log(`✅ PDF ingested into AI service for course ${courseId}`);
+      } else if (fileType === 'code') {
+        await axios.post(`${aiServiceUrl}/ingest-code`, {
+          course_id: courseId,
+          code_url: signedFileUrl,
+        });
+        console.log(`✅ Code file ingested into AI service for course ${courseId}`);
+      }
+    } catch (aiErr) {
+      console.error('⚠️ AI ingestion failed (non-blocking):', aiErr.message);
+    }
 
     res.status(200).json({
       message: 'Attachment uploaded successfully',

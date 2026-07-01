@@ -4,16 +4,16 @@ import fitz  # PyMuPDF
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import MongoDBAtlasVectorSearch
+from langchain_mongodb import MongoDBAtlasVectorSearch
 from langchain_core.documents import Document
-from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 
 from database import get_vector_collection
 
 load_dotenv()
 
 # We need GOOGLE_API_KEY set in the environment
-embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
+embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001", output_dimensionality=768)
 llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
 
 vector_collection = get_vector_collection()
@@ -49,6 +49,37 @@ def process_pdf_url(url: str, course_id: str):
     # 4. Create Document objects with metadata
     docs = [
         Document(page_content=chunk, metadata={"course_id": course_id})
+        for chunk in chunks
+    ]
+    
+    # 5. Add to vector store
+    vector_store.add_documents(docs)
+    
+    return len(docs)
+
+def process_code_url(url: str, course_id: str):
+    """Download a code file from a URL, chunk it, and store in vector DB."""
+    # 1. Download code file
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise Exception(f"Failed to download code file from {url}")
+    
+    # 2. Read as plain text
+    text = response.text
+    if not text.strip():
+        raise Exception("Code file is empty")
+    
+    # 3. Chunk text (smaller chunks for code to preserve logical blocks)
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=800,
+        chunk_overlap=150,
+        separators=["\nclass ", "\ndef ", "\nfunction ", "\n\n", "\n", " ", ""]
+    )
+    chunks = text_splitter.split_text(text)
+    
+    # 4. Create Document objects with metadata
+    docs = [
+        Document(page_content=chunk, metadata={"course_id": course_id, "type": "code"})
         for chunk in chunks
     ]
     
