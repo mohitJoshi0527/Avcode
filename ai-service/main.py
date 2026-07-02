@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
 from rag import process_pdf_url, process_code_url, generate_chat_response
+from agent import run_campus_agent
 
 load_dotenv()
 
@@ -28,6 +29,10 @@ class IngestRequest(BaseModel):
 class IngestCodeRequest(BaseModel):
     course_id: str
     code_url: str
+
+class AgentChatRequest(BaseModel):
+    student_id: str   # injected by Node.js from the Passport session — never from the user
+    query: str
 
 @app.get("/")
 def read_root():
@@ -54,6 +59,19 @@ async def ingest_code(req: IngestCodeRequest):
     try:
         chunks_added = process_code_url(req.code_url, req.course_id)
         return {"status": "success", "message": f"Added {chunks_added} code chunks to vector store for course {req.course_id}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/campus-agent/chat")
+async def campus_agent_chat(req: AgentChatRequest):
+    """
+    Smart Campus Assistant — Agentic AI endpoint.
+    `student_id` MUST be injected by the Node.js auth middleware;
+    it should never come from the browser/user directly.
+    """
+    try:
+        answer = run_campus_agent(req.student_id, req.query)
+        return {"response": answer}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

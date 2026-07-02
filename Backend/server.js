@@ -11,6 +11,7 @@ import courseRoutes from "./routes/course.route.js";
 import instructorRoutes from "./routes/instructor.route.js"; 
 import studentRoutes from "./routes/student.route.js"; 
 import commentRoutes from "./routes/comment.route.js"; 
+import campusAgentRoutes from "./routes/campusAgent.route.js";
 import path from "path";
 import cors from "cors";
 dotenv.config(); 
@@ -49,6 +50,7 @@ app.use("/api/course", courseRoutes);
 app.use("/api/instructor",instructorRoutes); 
 app.use("/api/student", studentRoutes); 
 app.use("/api/comment",commentRoutes);
+app.use("/api/campus-agent", campusAgentRoutes);
 app.get("/", (req, res) => {
   res.send("API is running...");
 });

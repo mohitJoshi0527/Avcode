@@ -30,6 +30,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Star } from 'lucide-react';
 import { Rating } from '@/components/ui/rating';
+import { SmartCampusAssistant } from './SmartCampusAssistant';
 
 interface StudentCourse {
   id: string;
@@ -312,6 +313,9 @@ export default function StudentDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Floating Smart Campus Assistant Chatbot */}
+      <SmartCampusAssistant />
     </div>
   );
 }
