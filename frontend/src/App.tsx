@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import InstructorDashboard from './components/instructor/InstructorDashboard';
+import InstructorDashboard from './components/instructor/instructordashboard';
 import CourseDetail from './components/instructor/CourseDetails';
 import StudentDashboard from './components/student/studentinstructor';
 import StudentCourseDetail from './components/student/courseContent';
