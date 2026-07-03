@@ -10,14 +10,12 @@ passport.use(
     {
       clientID: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
-      callbackURL: 'http://localhost:5000/auth/google/callback',
+      callbackURL: `${process.env.BACKEND_URL}/auth/google/callback`,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
         const email = profile.emails?.[0]?.value || '';
         const domain = email.split('@')[1];
-
-        console.log("🎯 Logging in with:", email);
 
         if (domain !== 'mnit.ac.in') {
           return done(null, false, { message: 'Use your MNIT email address' });

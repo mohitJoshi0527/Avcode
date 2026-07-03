@@ -69,7 +69,8 @@ export default function AuthPage() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:5000/auth/google';
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    window.location.href = `${backendUrl}/auth/google`;
   };
 
   const validateEmail = (email: string) => {
@@ -90,7 +91,7 @@ export default function AuthPage() {
 
     setIsLoading(true);
     try {
-      const res = await axios.post('http://localhost:5000/auth/signup', {
+      const res = await axios.post('/auth/signup', {
         name: formData.name,
         email: formData.email,
         password: formData.password,
@@ -114,7 +115,7 @@ export default function AuthPage() {
 
     setIsLoading(true);
     try {
-      const res = await axios.post('http://localhost:5000/auth/login', {
+      const res = await axios.post('/auth/login', {
         email: formData.email,
         password: formData.password,
       });

@@ -10,7 +10,6 @@ export const createCourse = async (req, res) => {
     if (!title || !description || !tags) {
       return res.status(400).json({ message: 'Title, description, and tags are required' });
     }
-    console.log(req.user);
     const createdBy = req.user._id; 
     const user = await User.findById(createdBy);
     if (!user) {
@@ -177,13 +176,11 @@ export const uploadAttachment = async (req, res) => {
           course_id: courseId,
           pdf_url: signedFileUrl,
         });
-        console.log(`✅ PDF ingested into AI service for course ${courseId}`);
       } else if (fileType === 'code') {
         await axios.post(`${aiServiceUrl}/ingest-code`, {
           course_id: courseId,
           code_url: signedFileUrl,
         });
-        console.log(`✅ Code file ingested into AI service for course ${courseId}`);
       }
     } catch (aiErr) {
       console.error('⚠️ AI ingestion failed (non-blocking):', aiErr.message);

@@ -10,9 +10,12 @@ load_dotenv()
 
 app = FastAPI(title="Agentic Study Buddy Service")
 
+frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+backend_url = os.environ.get("BACKEND_URL", "http://localhost:5000")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=[frontend_url, backend_url], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
