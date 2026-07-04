@@ -73,7 +73,10 @@ export default function StudentDashboard() {
     axios
       .get('/auth/me', { withCredentials: true })
       .then(res => setUser({ name: res.data.name, avatarUrl: res.data.avatarUrl }))
-      .catch(console.error)
+      .catch((err) => {
+        console.error(err);
+        navigate('/'); // Redirect to login if not authenticated
+      })
       .finally(() => setLoadingProfile(false));
   }, []);
 
@@ -186,7 +189,7 @@ export default function StudentDashboard() {
               <AvatarImage src={user.avatarUrl} alt={user.name} />
             ) : (
               <AvatarFallback className="bg-green-600 text-white">
-                {user?.name.charAt(0)}
+                {user?.name ? user.name.charAt(0) : '?'}
               </AvatarFallback>
             )}
           </Avatar>
