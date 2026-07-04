@@ -17,8 +17,8 @@ export default function StudyBuddyChat({ courseId }: { courseId: string }) {
     setLoading(true);
     
     try {
-      // Assuming FastAPI is running on port 8000
-      const res = await axios.post('http://localhost:8000/chat', {
+      const aiServiceUrl = import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:8000';
+      const res = await axios.post(`${aiServiceUrl}/chat`, {
         course_id: courseId!,
         query: userMsg
       });

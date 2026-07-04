@@ -17,6 +17,8 @@ import cors from "cors";
 dotenv.config(); 
 const _dirname=path.resolve();
 const app = express();
+app.set("trust proxy", 1); // Trust the Render reverse proxy
+
 app.use(cors({
   origin: process.env.FRONTEND_URL, 
   credentials: true,
@@ -36,8 +38,8 @@ app.use(
     cookie: {
       maxAge: 1000 * 60 * 60 * 24, 
       httpOnly: true,
-      secure: false, 
-      sameSite : 'lax',
+      secure: process.env.NODE_ENV === 'production', 
+      sameSite : process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     },
   })
 );

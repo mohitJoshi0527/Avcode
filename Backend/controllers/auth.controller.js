@@ -8,24 +8,24 @@ export const googleLogin = passport.authenticate('google', {
 });
 export const googleCallback = (req, res, next) => {
   passport.authenticate('google', (err, user, info) => {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     if (err) {
       console.error(err);
-      return res.redirect('http://localhost:5173/?error=InternalServerError');
+      return res.redirect(`${frontendUrl}/?error=InternalServerError`);
     }
     if (!user) {
-      // info.message contains the string from our done(null, false, { message: '...' })
       const errorMsg = info?.message || 'Authentication failed';
-      return res.redirect(`http://localhost:5173/?error=${encodeURIComponent(errorMsg)}`);
+      return res.redirect(`${frontendUrl}/?error=${encodeURIComponent(errorMsg)}`);
     }
     req.logIn(user, (loginErr) => {
       if (loginErr) {
         console.error(loginErr);
-        return res.redirect('http://localhost:5173/?error=LoginFailed');
+        return res.redirect(`${frontendUrl}/?error=LoginFailed`);
       }
       if (user.roles.includes('instructor')) {
-        return res.redirect('http://localhost:5173/dashboard');
+        return res.redirect(`${frontendUrl}/dashboard`);
       } else {
-        return res.redirect('http://localhost:5173/student/dashboard');
+        return res.redirect(`${frontendUrl}/student/dashboard`);
       }
     });
   })(req, res, next);
